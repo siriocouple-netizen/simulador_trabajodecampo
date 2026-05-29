@@ -1,0 +1,575 @@
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Space Grotesk',sans-serif;background:transparent;color:var(--color-text-primary)}
+.app{max-width:680px;margin:0 auto;padding:0}
+.home{padding:1.5rem 0}
+.home-title{font-size:22px;font-weight:700;margin-bottom:4px}
+.home-sub{font-size:13px;color:var(--color-text-secondary);margin-bottom:1.5rem}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.5rem}
+.stat-card{background:var(--color-background-secondary);border-radius:10px;padding:12px;text-align:center}
+.stat-num{font-size:22px;font-weight:700;font-family:'IBM Plex Mono',monospace}
+.stat-label{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.25rem}
+.mode-btn{background:var(--color-background-primary);border:1.5px solid var(--color-border-secondary);border-radius:12px;padding:14px;cursor:pointer;text-align:left;transition:all .15s}
+.mode-btn:hover,.mode-btn.active{border-color:#185FA5;background:#E6F1FB}
+.mode-icon{font-size:20px;margin-bottom:6px}
+.mode-name{font-size:14px;font-weight:600;color:var(--color-text-primary)}
+.mode-desc{font-size:12px;color:var(--color-text-secondary);margin-top:2px}
+.filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.25rem;align-items:center}
+.filter-label{font-size:12px;color:var(--color-text-secondary)}
+.tag{padding:5px 11px;border-radius:99px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-secondary);transition:all .12s}
+.tag.active{background:var(--color-text-primary);color:var(--color-background-primary);border-color:var(--color-text-primary)}
+.source-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.25rem;align-items:center}
+.start-btn{width:100%;padding:14px;border-radius:10px;background:var(--color-text-primary);color:var(--color-background-primary);border:none;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:opacity .15s}
+.start-btn:hover{opacity:.85}
+.link-btn{background:none;border:none;cursor:pointer;font-size:13px;color:var(--color-text-secondary);font-family:inherit;text-decoration:underline;margin-top:10px;display:block;text-align:center}
+.quiz{padding:1rem 0 2rem}
+.quiz-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.quiz-back{background:none;border:none;cursor:pointer;font-size:13px;color:var(--color-text-secondary);padding:6px 10px;border-radius:8px;font-family:inherit}
+.quiz-back:hover{background:var(--color-background-secondary)}
+.quiz-progress-text{font-size:13px;color:var(--color-text-secondary);font-family:'IBM Plex Mono',monospace}
+.progress-bar{height:4px;background:var(--color-background-secondary);border-radius:99px;margin-bottom:1.5rem;overflow:hidden}
+.progress-fill{height:100%;background:#1D9E75;border-radius:99px;transition:width .3s}
+.q-meta{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.q-tag{font-size:11px;padding:3px 10px;border-radius:99px;font-weight:600}
+.q-tag.tema{background:#E6F1FB;color:#185FA5}
+.q-tag.src-docx{background:#EEEDFE;color:#3C3489}
+.q-tag.src-kah{background:#E1F5EE;color:#0F6E56}
+.question-text{font-size:16px;font-weight:600;line-height:1.5;margin-bottom:1.25rem}
+.options{display:flex;flex-direction:column;gap:8px;margin-bottom:1rem}
+.option{padding:12px 16px;border-radius:10px;border:1.5px solid var(--color-border-secondary);cursor:pointer;font-size:14px;color:var(--color-text-primary);transition:all .12s;display:flex;align-items:flex-start;gap:10px;line-height:1.45;background:var(--color-background-primary);text-align:left}
+.option:hover:not(.disabled){border-color:#185FA5;background:#E6F1FB;color:#185FA5}
+.option.correct{border-color:#1D9E75;background:#E1F5EE;color:#0F6E56}
+.option.wrong{border-color:#D85A30;background:#FAECE7;color:#993C1D}
+.option.show-correct{border-color:#1D9E75;background:#E1F5EE;color:#0F6E56}
+.option.disabled{cursor:default}
+.opt-letter{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:12px;background:var(--color-background-secondary);padding:2px 6px;border-radius:4px;flex-shrink:0;margin-top:1px}
+.explanation{background:var(--color-background-secondary);border-radius:10px;padding:14px;font-size:13px;color:var(--color-text-secondary);line-height:1.6;margin-bottom:1rem;border-left:3px solid #1D9E75;display:none}
+.explanation.wrong-exp{border-left-color:#D85A30}
+.explanation.show{display:block}
+.next-btn{width:100%;padding:13px;border-radius:10px;background:var(--color-text-primary);color:var(--color-background-primary);border:none;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;cursor:pointer;display:none}
+.next-btn.show{display:block}
+.flashcard-wrap{perspective:1000px;margin:1.5rem 0;cursor:pointer}
+.flashcard{position:relative;width:100%;min-height:180px;transition:transform .5s;transform-style:preserve-3d}
+.flashcard.flipped{transform:rotateY(180deg)}
+.card-face{position:absolute;width:100%;min-height:180px;backface-visibility:hidden;border-radius:14px;border:1.5px solid var(--color-border-secondary);padding:24px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+.card-front{background:var(--color-background-primary)}
+.card-back{background:var(--color-background-secondary);transform:rotateY(180deg)}
+.card-hint{font-size:11px;color:var(--color-text-secondary);margin-bottom:12px}
+.card-q{font-size:15px;font-weight:600;line-height:1.5}
+.card-a{font-size:14px;color:#1D9E75;font-weight:600;line-height:1.5}
+.card-controls{display:flex;gap:8px}
+.card-btn{flex:1;padding:10px;border-radius:8px;border:1px solid var(--color-border-secondary);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .12s}
+.card-btn.yes{background:#E1F5EE;color:#1D9E75;border-color:#1D9E75}
+.card-btn.no{background:#FAECE7;color:#D85A30;border-color:#D85A30}
+.results{padding:1.5rem 0;text-align:center}
+.score-circle{width:110px;height:110px;border-radius:50%;margin:0 auto 1rem;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:28px;font-weight:700;font-family:'IBM Plex Mono',monospace}
+.score-circle.pass{background:#E1F5EE;color:#1D9E75;border:3px solid #1D9E75}
+.score-circle.fail{background:#FAECE7;color:#D85A30;border:3px solid #D85A30}
+.score-circle .score-label{font-size:11px;font-weight:500;font-family:'Space Grotesk',sans-serif}
+.results-title{font-size:20px;font-weight:700;margin-bottom:6px}
+.results-sub{font-size:14px;color:var(--color-text-secondary);margin-bottom:1.5rem}
+.results-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1.5rem}
+.res-stat{background:var(--color-background-secondary);border-radius:10px;padding:12px}
+.res-num{font-size:20px;font-weight:700;font-family:'IBM Plex Mono',monospace}
+.res-num.g{color:#1D9E75}.res-num.r{color:#D85A30}.res-num.b{color:#185FA5}
+.res-lbl{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.review-list{text-align:left;margin-bottom:1.5rem}
+.review-title{font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em}
+.review-item{padding:10px 12px;border-radius:8px;background:#FAECE7;border-left:3px solid #D85A30;margin-bottom:6px;font-size:13px}
+.review-correct{font-size:12px;color:#1D9E75;margin-top:4px;font-weight:500}
+.res-btns{display:flex;gap:8px}
+.res-btn{flex:1;padding:12px;border-radius:10px;border:1.5px solid var(--color-border-secondary);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-primary);transition:all .12s}
+.res-btn:hover{background:var(--color-background-secondary)}
+.res-btn.primary{background:var(--color-text-primary);color:var(--color-background-primary);border-color:var(--color-text-primary)}
+.cheatsheet{padding:1rem 0 2rem}
+.cs-back{background:none;border:none;cursor:pointer;font-size:14px;color:var(--color-text-secondary);padding:6px 0;font-family:inherit;display:flex;align-items:center;gap:6px;margin-bottom:1rem}
+.cs-title{font-size:18px;font-weight:700;margin-bottom:1rem}
+.cs-section{margin-bottom:10px;border:1px solid var(--color-border-tertiary);border-radius:10px;overflow:hidden}
+.cs-head{padding:12px 14px;background:var(--color-background-secondary);font-size:13px;font-weight:700;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.cs-body{padding:12px 14px;font-size:13px;display:none}
+.cs-body.open{display:block}
+.cs-row{display:flex;gap:8px;align-items:baseline;padding:4px 0;border-bottom:.5px solid var(--color-border-tertiary)}
+.cs-row:last-child{border-bottom:none}
+.cs-key{font-weight:600;color:var(--color-text-primary);min-width:150px;font-size:12px;flex-shrink:0}
+.cs-val{color:var(--color-text-secondary);font-size:12px;line-height:1.5}
+.hidden{display:none!important}
+</style>
+
+<div class="app" id="app">
+
+<!-- HOME -->
+<div class="home" id="screen-home">
+  <div class="home-title">📋 Trabajo de Campo</div>
+  <div class="home-sub" id="home-sub">116 preguntas · Tipo test + Kahoot · Temas 8-15</div>
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-num" id="stat-total">116</div><div class="stat-label">Total</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-done">0</div><div class="stat-label">Hechas</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-correct">0</div><div class="stat-label">Correctas</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-pct">—</div><div class="stat-label">% Acierto</div></div>
+  </div>
+  <div class="mode-grid">
+    <button class="mode-btn active" onclick="setMode('simulacro',this)"><div class="mode-icon">⏱</div><div class="mode-name">Simulacro</div><div class="mode-desc">40 preguntas · aleatorias</div></button>
+    <button class="mode-btn" onclick="setMode('flashcards',this)"><div class="mode-icon">🃏</div><div class="mode-name">Flashcards</div><div class="mode-desc">Repasa conceptos girando cartas</div></button>
+    <button class="mode-btn" onclick="setMode('porTema',this)"><div class="mode-icon">📖</div><div class="mode-name">Por tema</div><div class="mode-desc">Estudia tema a tema</div></button>
+    <button class="mode-btn" onclick="setMode('fallos',this)"><div class="mode-icon">🎯</div><div class="mode-name">Mis fallos</div><div class="mode-desc">Solo las preguntas que fallas</div></button>
+    <button class="mode-btn" onclick="setMode('todas',this)" style="grid-column:span 2"><div class="mode-icon">📋</div><div class="mode-name">Todas las preguntas</div><div class="mode-desc">Responde todas · con filtros</div></button>
+  </div>
+
+  <div id="filters-tema" class="filter-row" style="display:none">
+    <span class="filter-label">Tema:</span>
+    <span class="tag active" onclick="selTema(this,'todos')">Todos</span>
+    <span class="tag" onclick="selTema(this,'T8')">T8</span>
+    <span class="tag" onclick="selTema(this,'T9')">T9</span>
+    <span class="tag" onclick="selTema(this,'T10')">T10</span>
+    <span class="tag" onclick="selTema(this,'T11')">T11</span>
+    <span class="tag" onclick="selTema(this,'T12')">T12</span>
+    <span class="tag" onclick="selTema(this,'T13')">T13</span>
+    <span class="tag" onclick="selTema(this,'T14')">T14</span>
+    <span class="tag" onclick="selTema(this,'T15')">T15</span>
+  </div>
+
+  <div class="source-row" id="filters-source">
+    <span class="filter-label">Fuente:</span>
+    <span class="tag active" onclick="selSrc(this,'todas')">Todas</span>
+    <span class="tag" onclick="selSrc(this,'docx')">📝 Tipo test (84)</span>
+    <span class="tag" onclick="selSrc(this,'kah')">🎮 Kahoot (32)</span>
+  </div>
+
+  <button class="start-btn" id="start-btn" onclick="startSession()">Empezar simulacro ↗</button>
+  <button class="link-btn" onclick="showCheatsheet()">Ver resumen por temas →</button>
+</div>
+
+<!-- QUIZ -->
+<div class="quiz hidden" id="screen-quiz">
+  <div class="quiz-header">
+    <button class="quiz-back" onclick="goHome()">← Inicio</button>
+    <span class="quiz-progress-text" id="q-progress">1/40</span>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  <div class="q-meta" id="q-meta"></div>
+  <div class="question-text" id="q-text"></div>
+  <div class="options" id="q-options"></div>
+  <div class="explanation" id="q-explanation"></div>
+  <button class="next-btn" id="next-btn" onclick="nextQuestion()">Siguiente →</button>
+</div>
+
+<!-- RESULTS -->
+<div class="results hidden" id="screen-results">
+  <div class="score-circle" id="score-circle"><span id="score-pct">—</span><span class="score-label">acierto</span></div>
+  <div class="results-title" id="results-title">Resultados</div>
+  <div class="results-sub" id="results-sub"></div>
+  <div class="results-grid">
+    <div class="res-stat"><div class="res-num g" id="res-ok">0</div><div class="res-lbl">Correctas</div></div>
+    <div class="res-stat"><div class="res-num r" id="res-ko">0</div><div class="res-lbl">Incorrectas</div></div>
+    <div class="res-stat"><div class="res-num b" id="res-tot">0</div><div class="res-lbl">Total</div></div>
+  </div>
+  <div class="review-list" id="review-list"></div>
+  <div class="res-btns">
+    <button class="res-btn" onclick="goHome()">← Inicio</button>
+    <button class="res-btn primary" onclick="startSession()">Repetir ↺</button>
+  </div>
+</div>
+
+<!-- FLASHCARDS -->
+<div class="quiz hidden" id="screen-flash">
+  <div class="quiz-header">
+    <button class="quiz-back" onclick="goHome()">← Inicio</button>
+    <span class="quiz-progress-text" id="f-progress">1/116</span>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="f-fill" style="width:0%"></div></div>
+  <div class="flashcard-wrap" onclick="flipCard()">
+    <div class="flashcard" id="flashcard">
+      <div class="card-face card-front"><div class="card-hint">Toca para ver la respuesta</div><div class="card-q" id="card-q"></div></div>
+      <div class="card-face card-back"><div class="card-hint">Respuesta correcta</div><div class="card-a" id="card-a"></div></div>
+    </div>
+  </div>
+  <div class="card-controls">
+    <button class="card-btn no" onclick="cardAnswer(false)">✗ No lo sabía</button>
+    <button class="card-btn yes" onclick="cardAnswer(true)">✓ Lo sabía</button>
+  </div>
+</div>
+
+<!-- CHEATSHEET -->
+<div class="cheatsheet hidden" id="screen-cheat">
+  <button class="cs-back" onclick="goHome()">← Volver al inicio</button>
+  <div class="cs-title">📚 Resumen por temas</div>
+  <div id="cheat-content"></div>
+</div>
+
+</div>
+
+<script>
+const Q=[
+{id:1,t:"T8",s:"docx",q:"El Mystery Shopping…",o:["Es una compra simulada.", "Es una variable del método por observación.", "Permite medir la formación de los trabajadores de un local.", "Todas las anteriores son correctas."],c:3,e:"El <b>Mystery Shopping</b> es una compra simulada (A), es una variable del método por observación (B), y permite medir la formación de los trabajadores, la calidad del servicio y observar problemas del local (C). Por tanto, todas son correctas."},
+{id:2,t:"T8",s:"docx",q:"¿Cuál es el número recomendado de participantes en una reunión de grupo?",o:["Entre 2 y 5", "Entre 5 y 7", "Entre 8 y 12", "Más de 20"],c:2,e:"Una reunión de grupo suele estar formada por <b>entre 8 y 12 integrantes</b>. Los grupos inferiores a 8 tienen menos posibilidades de generar las dinámicas necesarias. Los de más de 12 son demasiados para producir una conversación fluida."},
+{id:3,t:"T8",s:"docx",q:"¿Qué características debe tener el grupo en una técnica grupal?",o:["Debe ser totalmente aleatorio", "Debe ser homogéneo", "Debe incluir expertos únicamente", "Debe estar formado solo por clientes habituales"],c:1,e:"El grupo debe ser <b>homogéneo</b> en sus características sociodemográficas y socioeconómicas para evitar conflictos entre los miembros. Por ejemplo, se debe evitar mezclar madres amas de casa con mujeres jóvenes solteras."},
+{id:4,t:"T8",s:"docx",q:"¿Cuál es una ventaja principal de las técnicas de grupo?",o:["Permiten extrapolar resultados a toda la población", "Eliminan totalmente el sesgo del investigador", "Generan gran cantidad de información espontánea", "No requieren conducir"],c:2,e:"Una de las principales ventajas de las técnicas de grupo es la <b>espontaneidad</b>: las respuestas son más espontáneas y menos estructuradas. Además, el efecto 'bola de nieve' hace que el comentario de una persona desate la reacción de otras, generando más información."},
+{id:5,t:"T8",s:"docx",q:"¿Qué técnica consiste en una compra simulada para evaluar el servicio?",o:["Método Delphi", "Técnica proyectiva", "Entrevista libre", "Mystery Shopping"],c:3,e:"El <b>Mystery Shopping</b> (comprador misterioso) es una compra simulada donde el observador se hace pasar por un cliente para evaluar el servicio del local, la atención de los empleados y la calidad general."},
+{id:6,t:"T8",s:"docx",q:"Según las recomendaciones ESOMAR, el Mystery Shopping:",o:["Debe utilizarse para sancionar empleados", "Puede exigir actividades peligrosas al participante", "No debe perjudicar la productividad de la competencia", "Debe realizarse sin consentimiento de la empresa investigada"],c:2,e:"La guía ESOMAR establece que si se realizan estudios para medir el servicio de la competencia, se deberá hacer de forma rápida y sencilla, <b>sin que suponga un perjuicio para la productividad de esta</b>. Además, no debe usarse para sancionar trabajadores ni exigir actividades peligrosas."},
+{id:7,t:"T8",s:"docx",q:"¿Qué tipo de entrevista permite mayor libertad al participante?",o:["Estructurada", "Libre o no dirigida", "Semiestructurada", "Cerrada"],c:1,e:"La <b>entrevista libre o no dirigida</b> es la que no está estructurada, en la que el entrevistador incita al participante a que se exprese de forma libre con el máximo detalle. La gran parte de las preguntas no deben ser cerradas."},
+{id:8,t:"T8",s:"docx",q:"En las técnicas proyectivas, el participante:",o:["Responde únicamente a preguntas cerradas", "Debe memorizar información", "Proyecta indirectamente sus sentimientos y motivaciones", "Solo analiza datos cuantitativos"],c:2,e:"Las técnicas proyectivas son técnicas que de forma <b>indirecta incitan a las personas a proyectar sus motivaciones, creencias y sentimientos</b> en referencia al tema a tratar. El participante interpreta el comportamiento de otros en lugar del suyo propio."},
+{id:9,t:"T8",s:"docx",q:"¿Cuál de las siguientes es una técnica proyectiva?",o:["Escala Likert", "Pregunta dicotómica", "Técnica de asociación de palabras", "Encuesta online"],c:2,e:"La <b>técnica de asociación de palabras</b> es una técnica proyectiva. Se le presenta al participante una lista de palabras y se le pide que responda lo primero que se le ocurra. Las otras opciones (Likert, dicotómica, encuesta online) son técnicas de cuestionario estructurado."},
+{id:10,t:"T9",s:"docx",q:"¿Cuál es la principal función del cuestionario?",o:["Realizar entrevistas en profundidad", "Estandarizar los datos obtenidos", "Sustituir al investigador", "Evitar el análisis estadístico"],c:1,e:"La principal función del cuestionario es <b>estandarizar los datos</b> para conseguir la información que se requiere. Permite llevar a cabo la investigación de forma estructurada y ordenada, facilitando el posterior análisis estadístico."},
+{id:11,t:"T9",s:"docx",q:"¿Qué diferencia principal existe entre entrevistas y cuestionario?",o:["El cuestionario siempre es oral", "La entrevista nunca requiere investigador", "La entrevista tiene mayor participación del investigador", "El cuestionario solo usa preguntas abiertas"],c:2,e:"La principal diferencia es la forma de estructurar las preguntas y <b>el requerimiento o no de la presencia del investigador</b>. A más estructuración y menos participación del investigador, más se identifica con el cuestionario. La entrevista implica mayor participación del investigador."},
+{id:12,t:"T9",s:"docx",q:"¿Qué tipo de cuestionario combina preguntas abiertas y cerradas?",o:["No estructurado", "Estructurado", "Semiestructurado", "Experimental"],c:2,e:"El <b>cuestionario semiestructurado</b> combina tanto preguntas abiertas como preguntas cerradas. Se recomienda cuando se necesita una cantidad variada de respuestas: cerradas para información conocida y abiertas para profundizar."},
+{id:13,t:"T9",s:"docx",q:"¿Qué tipo de preguntas deben colocarse al inicio del cuestionario?",o:["Complejas", "Matemáticas", "De aproximación", "Técnicas"],c:2,e:"Las <b>preguntas de aproximación</b> son preguntas simples y que no requieren mucho compromiso, que se colocan al principio del cuestionario para generar motivación en participar. Las preguntas complejas se sitúan al final."},
+{id:14,t:"T9",s:"docx",q:"¿Cuál de los siguientes formatos de pregunta pide al entrevistado que ordene opciones de mejor a peor?",o:["Pregunta abierta", "Escala Likert", "Pregunta de lista", "Pregunta dicotómica"],c:1,e:"La <b>Escala Likert</b> pide al entrevistado que ordene o clasifique varias opciones; por ejemplo, del primero al último, o de mejor a peor. Es ideal para medir actitudes y grados de acuerdo."},
+{id:15,t:"T9",s:"docx",q:"¿Qué atributo debe cumplir un cuestionario para favorecer su éxito?",o:["Tener más de 50 preguntas", "Utilizar un lenguaje ambiguo", "Ser claro y adaptado al participante", "Incluir cálculos matemáticos complejos"],c:2,e:"Para que un cuestionario tenga éxito debe ser <b>claro y adaptado al nivel del participante</b>. Las preguntas deben ser formuladas de forma clara, el lenguaje debe adaptarse al encuestado, y no debe superar las 30 preguntas."},
+{id:16,t:"T10",s:"docx",q:"¿Cuál es una característica fundamental de una buena pregunta en un cuestionario?",o:["Debe ser extensa", "Debe ser ambigua", "Debe ser clara y concreta", "Debe incluir opiniones del investigador"],c:2,e:"Una buena pregunta debe ser <b>clara y concreta</b>. Las palabras usadas deben tener un único significado, se deben evitar palabras ambiguas como 'usualmente', 'frecuentemente' o 'a menudo', y debe ser lo más específica posible."},
+{id:17,t:"T10",s:"docx",q:"¿Qué tipo de pregunta permite al encuestado responder libremente con sus propias palabras?",o:["Cerrada", "Dicotómica", "Abierta", "Multicotómica"],c:2,e:"La <b>respuesta abierta</b> otorga total libertad al encuestado para que responda con sus propias palabras. Es útil en las primeras fases de la investigación y cuando se entrevista a personas que pueden dar importantes aportaciones y matices."},
+{id:18,t:"T10",s:"docx",q:"Una pregunta sesgada es aquella que:",o:["Tiene muchas respuestas posibles", "Sugiere la respuesta deseada", "Es demasiado corta", "Está escrita en mayúsculas"],c:1,e:"Una <b>pregunta sesgada</b> es aquella que puede dar señales de cuál es la respuesta que se desea que se otorgue, llevando al encuestado a contestar de una determinada manera. También surge sesgo cuando se da pistas al participante de quién patrocina la investigación."},
+{id:19,t:"T10",s:"docx",q:"¿Qué debe evitarse al redactar preguntas?",o:["Lenguaje claro", "Alternativas explícitas", "Palabras ambiguas", "Preguntas cortas"],c:2,e:"Se deben evitar las <b>palabras ambiguas</b> (como 'usualmente', 'normalmente', 'frecuentemente', 'a menudo'). Las palabras del cuestionario deben tener un único significado para que el encuestado pueda responder con precisión."},
+{id:20,t:"T10",s:"docx",q:"Las preguntas filtro tienen como finalidad:",o:["Medir actitudes", "Verificar respuestas falsas", "Seleccionar participantes con determinadas características", "Profundizar en un tema"],c:2,e:"Las <b>preguntas filtro</b> son preguntas cuya finalidad es seleccionar a personas con ciertas características. Según la respuesta que ofrezca el participante, se le requerirá o excluirá de seguir con la siguiente pregunta."},
+{id:21,t:"T10",s:"docx",q:"El pretest del cuestionario sirve para:",o:["Aumentar el tamaño de la muestra", "Detectar errores antes de aplicar la encuesta definitiva", "Reducir preguntas abiertas", "Eliminar entrevistadores"],c:1,e:"El <b>pretest o prueba piloto</b> sirve para: identificar errores en el diseño del cuestionario, familiarizar a los encuestadores con el mismo, y analizar la validez del cuestionario en el entorno real. Todo esto antes de aplicar la encuesta definitiva."},
+{id:22,t:"T10",s:"docx",q:"Aproximadamente, el pretest suele realizarse sobre:",o:["El 1% de la muestra", "El 5% de la muestra", "El 25% de la muestra", "El 50% de la muestra"],c:1,e:"El pretest (prueba piloto) suele realizarse sobre aproximadamente el <b>5% de la muestra total</b> seleccionada, con participantes de características similares a la población objetivo."},
+{id:23,t:"T10",s:"docx",q:"¿Cuál de los siguientes puede provocar sesgo en las respuestas?",o:["Mantener neutralidad", "Preguntas concretas", "Mostrar la opinión del entrevistador", "Lenguaje sencillo"],c:2,e:"<b>Mostrar la opinión del entrevistador</b> provoca sesgo. El entrevistador debe mantener una posición neutral y no debe incluir comentarios adicionales a las preguntas. En caso de que el encuestado le pregunte su opinión, debe negarse amablemente."},
+{id:24,t:"T10",s:"docx",q:"¿Qué método de registro permite analizar el lenguaje corporal?",o:["Toma de notas", "Grabación de voz", "Grabación de vídeo", "Cuestionario postal"],c:2,e:"La <b>grabación de vídeo</b> permite analizar la interacción en la entrevista y es útil para hacer ver a los entrevistadores la gran importancia del lenguaje corporal. Ofrece mucha más información que la grabación de voz."},
+{id:25,t:"T10",s:"docx",q:"¿Qué debe solicitarse antes de grabar una entrevista?",o:["Una encuesta previa", "Una hoja de cálculo", "Consentimiento expreso", "Una copia del DNI"],c:2,e:"Antes de grabar se debe solicitar el <b>consentimiento expreso</b> del participante, ya que las grabaciones son datos personales regulados por la Ley de Protección de Datos. Este consentimiento puede ser por escrito o grabando la confirmación expresa."},
+{id:26,t:"T10",s:"docx",q:"¿Qué debe hacer el entrevistador si el encuestado no quiere responder una pregunta?",o:["Obligarle a responder", "Inventar la respuesta", "Pasar a la siguiente pregunta", "Finalizar la entrevista"],c:2,e:"El entrevistador debe <b>pasar a la siguiente pregunta</b> si el encuestado se niega a contestar. No se debe obligar a nadie a responder. Se debe anotar la incidencia en el cuestionario, y puede recordarse al entrevistado la importancia de su participación."},
+{id:27,t:"T11",s:"docx",q:"¿Qué significa la metodología CAPI?",o:["Encuesta postal informatizada", "Entrevista telefónica automática", "Encuesta personal asistida por ordenador", "Encuesta online móvil"],c:2,e:"<b>CAPI</b> son las siglas de <b>Computer Assisted Personal Interviewing</b> (Encuesta personal asistida por ordenador). Se basa en la realización de encuestas por parte del encuestador con la ayuda de un ordenador en el cual se exponen las preguntas."},
+{id:28,t:"T11",s:"docx",q:"¿Cuál es una ventaja de la encuesta CAWI?",o:["Necesita presencia física", "Permite seguir los resultados en tiempo real", "Tiene un coste muy elevado", "No admite contenido multimedia"],c:1,e:"Una de las principales ventajas de la encuesta <b>CAWI (Computer Assisted Web Interviewing)</b> es que <b>se pueden seguir los resultados en tiempo real</b>. Además, es muy barata, no tiene limitación geográfica y no permite sesgos por parte del encuestador."},
+{id:29,t:"T11",s:"docx",q:"La metodología CATI se basa en:",o:["Encuestas por correo postal", "Entrevistas presenciales", "Encuestas telefónicas asistidas por ordenador", "Encuestas mediante tablets"],c:2,e:"<b>CATI</b> son las siglas de <b>Computer Assisted Telephone Interviewing</b>. Se basa en el relleno de cuestionarios a través de un ordenador, en el que aparecerán las preguntas que el entrevistador debe transmitir al encuestado a través del teléfono."},
+{id:30,t:"T11",s:"docx",q:"¿Qué estrategia ayuda a aumentar la tasa de respuesta en encuestas online?",o:["Correos considerados spam", "Incentivos y recordatorios", "Preguntas ambiguas", "Cuestionarios muy largos"],c:1,e:"Para aumentar la tasa de respuesta en encuestas online se usan: <b>incentivos</b> (aunque con cuidado para no 'profesionalizar' a los participantes), <b>recordatorios</b> por email a los que aún no han contestado, y emails de invitación atractivos y no considerados spam."},
+{id:31,t:"T11",s:"docx",q:"La metodología multimodo consiste en:",o:["Utilizar solo encuestas online", "Combinar distintos métodos de encuesta", "Aplicar únicamente entrevistas personales", "Usar exclusivamente cuestionarios cerrados"],c:1,e:"La <b>metodología multimodo</b> combina diferentes metodologías de encuestas en una investigación comercial. Así se aprovechan las ventajas de cada método y se compensan sus desventajas. Los métodos pueden trabajarse a la vez, en secuencia, o con uno principal y otros complementarios."},
+{id:32,t:"T11",s:"docx",q:"En una encuesta postal es especialmente importante:",o:["El uso de vídeos", "La presencia del entrevistador", "Las instrucciones de cumplimentación", "La grabación de audio"],c:2,e:"En la encuesta postal cobra especial importancia la introducción de <b>instrucciones para la correcta cumplimentación</b>, ya que estas indicaciones <b>sustituyen al encuestador</b> que no está presente. También es importante añadir carta de presentación con los motivos de la investigación."},
+{id:33,t:"T12",s:"docx",q:"¿Cuál es el número recomendado de encuestadores por supervisor?",o:["20 encuestadores por supervisor", "15 encuestadores por supervisor", "10 encuestadores por supervisor", "5 encuestadores por supervisor"],c:2,e:"Se recomienda <b>no superar 8/10 encuestadores por supervisor</b>. En la encuesta CATI, gracias a que las llamadas pueden ser grabadas e incluso escuchadas por varias personas, el supervisor puede realizar sus funciones en directo."},
+{id:34,t:"T12",s:"docx",q:"La frecuencia absoluta…",o:["Nos indica la proporción con respecto a otros valores", "Es el número de veces que aparece un valor", "Se calcula dividiendo la frecuencia absoluta acumulada entre el total de la muestra", "La mayor frecuencia coincide con el tamaño de la muestra"],c:1,e:"La <b>frecuencia absoluta</b> es el número de veces que aparece un valor en la muestra. La suma total de todas las frecuencias absolutas debe ser igual al tamaño muestral."},
+{id:35,t:"T12",s:"docx",q:"En el diseño de un cuestionario, las preguntas iniciales:",o:["Son fundamentales para obtener la confianza de los participantes y deben ser sencillas y motivadoras", "Deben ir al final del cuestionario, son aquellas delicadas, aburridas o complicadas", "Son preguntas temáticas y difíciles", "Son las preguntas finales del cuestionario y tratan sobre conclusiones finales"],c:0,e:"Las <b>preguntas iniciales</b> son fundamentales para obtener la confianza de los participantes. Deben ser <b>sencillas y motivadoras</b>. Las preguntas relacionadas con la opinión pueden ir bien al principio, ya que a las personas les suele gustar dar su punto de vista."},
+{id:36,t:"T12",s:"docx",q:"La entrevista es:",o:["La herramienta por la cual recogemos los datos que serán necesarios para estudiarlos y sacar las conclusiones precisas", "El formulario que realizamos con preguntas abiertas", "El formulario que realizamos con preguntas cerradas", "Un typeform pero cara a cara"],c:0,e:"La <b>entrevista</b> es la herramienta por la cual recogemos los datos que serán necesarios para estudiarlos y sacar las conclusiones precisas. Se basa en una comunicación entre dos individuos donde el entrevistador controla la conversación."},
+{id:37,t:"T12",s:"docx",q:"Dentro de la tabulación de datos, la frecuencia que se calcula a partir de la frecuencia absoluta acumulada, dividiéndolas entre el total de la muestra, corresponde a la:",o:["Frecuencia relativa", "Frecuencia absoluta acumulada", "Frecuencia relativa acumulada", "Ninguna de las respuestas son correctas"],c:2,e:"La <b>frecuencia relativa acumulada</b> se calcula a partir de la frecuencia absoluta acumulada, dividiéndola entre el total de la muestra. La suma de todas las frecuencias relativas es igual a 1 (o 100%)."},
+{id:38,t:"T12",s:"docx",q:"En referencia a la clasificación de los cuestionarios, el cuestionario estructurado se caracteriza por:",o:["Todas las preguntas son cerradas", "Se combinan tanto preguntas abiertas como preguntas cerradas", "En este tipo de cuestionarios todas las preguntas son abiertas", "No existe este tipo de cuestionario"],c:0,e:"El <b>cuestionario estructurado</b> tiene todas las preguntas <b>cerradas</b>. Se suele usar en investigaciones descriptivas, concluyentes y causales. Su finalidad es el tratamiento estadístico de los datos obtenidos."},
+{id:39,t:"T13",s:"docx",q:"Entre las técnicas creativas, el método para estructurar una reunión de grupo de expertos que llegan a una solución común se denomina:",o:["Grupo nominal", "Método Delphi", "Brainstorming", "Mystery Shopping"],c:1,e:"El <b>Método Delphi</b> es un método para estructurar una reunión de grupo de expertos que se enfrentan a un problema y tienen que llegar a una solución común. Se envían cuestionarios sucesivos hasta alcanzar un consenso."},
+{id:40,t:"T13",s:"docx",q:"Dentro del control de la muestra, las encuestas telefónicas:",o:["Las entrevistas no pueden ser supervisadas al momento", "Son más sencillas a la hora de llevar un control sobre la muestra", "El entrevistador tiene mucho margen para cambiar las unidades que se han seleccionado", "Todas las respuestas son correctas"],c:1,e:"Las <b>encuestas telefónicas</b> son más sencillas a la hora de llevar un control sobre la muestra, ya que el entrevistador no tiene mucho margen para cambiar las unidades seleccionadas y las entrevistas pueden ser supervisadas en directo."},
+{id:41,t:"T13",s:"docx",q:"Algunas recomendaciones sobre cómo deben organizarse los temas son:",o:["El orden de los temas debe seguir la lógica del encuestador", "Las preguntas clave del cuestionario deben encontrarse al inicio, juntas", "El orden de los temas debe seguir la lógica del encuestado, no del encuestador", "La duración máxima es imprevisible"],c:2,e:"El orden de los temas debe seguir la <b>lógica del encuestado</b>, no del encuestador. Además, las preguntas clave deben encontrarse <b>claras y separadas</b>, y se debe informar al participante del fin de un tema y comienzo de otro."},
+{id:42,t:"T13",s:"docx",q:"¿Qué es la codificación?",o:["Es el proceso por el cual se analizan las respuestas", "Es el proceso por el cual se verifican y corrigen los datos", "Es el proceso en el que se transforman las respuestas en códigos o números para tratarlos estadísticamente", "Ninguna de las respuestas son correctas"],c:2,e:"La <b>codificación</b> es el proceso en el que se <b>transforman las respuestas en códigos o números</b> para poder tratarlos de forma estadística. Es fundamental: si se comete un fallo en esta codificación, los datos estarían distorsionados."},
+{id:43,t:"T13",s:"docx",q:"Trabajo de campo en entrevistas en profundidad puede ser:",o:["Objetiva, semiestructurada y estructurada", "Libre, semiestructurada y estructurada", "Subjetiva, semiestructurada y estructurada", "Dirigida, semiestructurada y estructurada"],c:1,e:"Los tipos de entrevista en profundidad son: <b>libre o no dirigida</b> (sin estructura, máxima libertad), <b>semiestructurada</b> (cubre ciertos conceptos con guía) y <b>estructurada</b> (fácil de entender, menor margen de error)."},
+{id:44,t:"T14",s:"docx",q:"Los tipos de preguntas deben basarse:",o:["En el tiempo que tenga el entrevistado para contestar", "En el lugar donde se hagan las mismas", "En el grado de libertad de respuesta o en los objetivos precisos que se deseen conseguir", "En la experiencia del encuestador"],c:2,e:"Los tipos de preguntas se deben basar en el <b>grado de libertad de respuesta</b> (abierta, cerrada, semicerrada) o <b>en los objetivos precisos que se deseen conseguir</b> (filtro, batería, control, delicadas...)."},
+{id:45,t:"T14",s:"docx",q:"Alguna de las desventajas de las técnicas proyectivas:",o:["Se obtienen datos que el participante no estaría dispuesto a otorgar", "Al no conocer la intención, se sinceran más en temas delicados", "Son baratas", "Se requieren entrevistadores altamente cualificados"],c:3,e:"Las desventajas de las técnicas proyectivas son: <b>se requieren entrevistadores altamente cualificados</b>, son costosas, se puede producir sesgo en la interpretación, y son técnicas abiertas que dificultan mucho su análisis."},
+{id:46,t:"T14",s:"docx",q:"Para el Registro de la entrevista, podemos usar:",o:["Un short de Youtube", "La grabación de audio", "La memoria del encuestador", "El email del entrevistado"],c:1,e:"Para el registro de la entrevista se pueden usar: <b>grabación de audio</b> (más común), grabación de vídeo (permite ver lenguaje corporal) y toma de notas (con sus limitaciones). Previamente se debe solicitar el consentimiento expreso del participante."},
+{id:47,t:"T14",s:"docx",q:"Las técnicas expresivas se realizan…",o:["Exponiendo una situación y pidiendo que la relacionen con sus sentimientos", "La presentación de unas palabras a las que tendrán que ligar la primera palabra que se le ocurra", "La construcción de respuestas a raíz de una estructura", "La complementación del individuo de una situación incompleta"],c:0,e:"Las <b>técnicas expresivas</b> consisten en exponer una situación (de forma hablada o con imágenes) y pedir a los participantes que <b>relacionen los sentimientos o actitudes de otras personas</b> con la situación que están observando."},
+{id:48,t:"T14",s:"docx",q:"Las preguntas de aproximación…",o:["Requieren más concentración", "Son preguntas intermedias", "No requieren mucho compromiso", "Ninguna de las anteriores es correcta"],c:2,e:"Las <b>preguntas de aproximación</b> son preguntas simples que <b>no requieren mucho compromiso</b>, situadas al principio del cuestionario para generar motivación en el participante. Las preguntas de transición son las intermedias y las complejas van al final."},
+{id:49,t:"T14",s:"docx",q:"El porcentaje de cuestionarios no contestados debería oscilar entre…",o:["El 15 y el 20 %", "El 5% y el 10 %", "El 20 y el 25 %", "Más del 25 %"],c:1,e:"El porcentaje de la muestra que no conteste el cuestionario debería oscilar entre el <b>5% y el 10%</b>. Un alto porcentaje de cuestionarios no realizados puede provocar un sesgo en la investigación, ya que esas personas pueden representar características diferentes al resto."},
+{id:50,t:"T14",s:"docx",q:"El pretest o prueba piloto sirve para…",o:["Identificar errores", "Familiarizar a los encuestadores con el cuestionario", "Analizar la validez del cuestionario", "Todas son correctas"],c:3,e:"El <b>pretest o prueba piloto</b> sirve para todo ello: (1) identificar errores en el diseño, (2) familiarizar a los encuestadores con el cuestionario, y (3) analizar en el entorno la validez del cuestionario (duración, facilidad de cumplimentarlo...)."},
+{id:51,t:"T14",s:"docx",q:"La entonación del entrevistador debe ser…",o:["Con un tono de voz bajo", "Formal", "Con un tono de voz muy elevado", "Todas son incorrectas"],c:3,e:"La entonación del entrevistador debe buscar el <b>equilibrio entre la entonación informal y un volumen de voz adecuado</b>. Ni demasiado bajo ni muy elevado, y no excesivamente formal. El objetivo es que el entrevistado se sienta cómodo y evitar un estilo interrogatorio."},
+{id:52,t:"T14",s:"docx",q:"Las aplicaciones profesionales…",o:["Solo se pueden usar en la metodología CAWI", "Solo se puede usar en la metodología CAPI", "Se pueden usar en varias metodologías", "Ninguna es correcta"],c:2,e:"Las aplicaciones profesionales como <b>Tesigandia</b> ofrecen servicio para todo tipo de estudios: <b>CAPI, CAWI o CATI</b>. Las versiones demo suelen ser suficientes para pequeñas investigaciones."},
+{id:53,t:"T15",s:"docx",q:"Las técnicas de supervisión y control no pueden realizarse:",o:["Antes del trabajo de campo", "Durante el trabajo de campo", "Después del trabajo de campo", "Ninguna es correcta"],c:0,e:"Las técnicas de supervisión y control se realizan <b>durante</b> (acompañando al encuestador, visitas posteriores) y <b>después</b> (revisando cuestionarios, codificación). <b>No se realizan antes</b> del trabajo de campo, ya que no hay datos aún que controlar."},
+{id:54,t:"T15",s:"docx",q:"La frecuencia relativa acumulada…",o:["Se calcula dividiendo la frecuencia absoluta acumulada entre el total de la muestra", "Es el número de veces que aparece un valor", "Nos indica la proporción con respecto a otros valores", "La mayor frecuencia coincide con el tamaño de la muestra"],c:0,e:"La <b>frecuencia relativa acumulada</b> se calcula dividiendo la <b>frecuencia absoluta acumulada entre el total de la muestra</b>. La suma de todas las frecuencias relativas es igual a 1."},
+{id:55,t:"T15",s:"docx",q:"La elaboración y diseño de un cuestionario tiene como finalidad:",o:["Diseñar una herramienta que realice al 100% la tarea del investigador", "Elaborar un instrumento preciso que distorsione las respuestas de los participantes", "Conseguir una base que permita hacer cálculos estadísticos simples posteriores", "Traducir, a través de preguntas, un problema"],c:3,e:"Uno de los objetivos del cuestionario es <b>traducir, a través de preguntas, un problema</b>. Otros objetivos son: confeccionar una herramienta estandarizada, obtener datos fiables, poner en marcha el trabajo de campo y facilitar la tarea del investigador."},
+{id:56,t:"T15",s:"docx",q:"Las limitaciones de una encuesta CAPI son:",o:["Su coste es bajo", "Se encuentra limitado por la situación geográfica", "El entrevistador tiene movilidad absoluta", "Ninguna de las respuestas son correctas"],c:1,e:"La encuesta <b>CAPI</b> se encuentra limitada por la <b>situación geográfica</b>, ya que el participante debe trasladarse al lugar donde se encuentra el ordenador. Además, su coste es elevado. La MCAPI soluciona el problema geográfico usando tablets o móviles."},
+{id:57,t:"T15",s:"docx",q:"Hacemos un brainstorming para...",o:["Estructurar una reunión de grupo de expertos que llegan a una solución común", "Incentivar la participación en situaciones donde puedan verse cohibidos", "Generar ideas o solucionar problemas", "Ninguna de las respuestas son correctas"],c:2,e:"El <b>brainstorming</b> o tormenta de ideas es una técnica usada para <b>generar ideas o solucionar problemas</b>. Busca el mayor número de aportaciones a partir de la conversación de un grupo heterogéneo, sin críticas negativas."},
+{id:58,t:"T15",s:"docx",q:"Según la libertad de expresión del participante, las preguntas cerradas que ofrecen una opción de respuestas abiertas se consideran:",o:["Respuesta abierta", "Respuesta semicerrada", "Respuesta cerrada", "Ninguna de las respuestas son correctas"],c:1,e:"La <b>respuesta semicerrada</b> son preguntas cerradas que ofrecen una opción de respuesta abierta. Mediante este tipo de preguntas se pueden obtener respuestas que el investigador no haya contemplado."},
+{id:59,t:"T15",s:"docx",q:"La principal función del cuestionario es:",o:["Estandarizar los datos", "Dificultar el trabajo del encuestador", "Que los datos se interpreten de forma más lenta", "Que los resultados sean lo más subjetivos posibles"],c:0,e:"La principal función del cuestionario es <b>estandarizar los datos</b> para conseguir la información que se requiere, concretando los objetivos en forma de preguntas para facilitar el posterior análisis estadístico."},
+{id:60,t:"T15",s:"docx",q:"Previamente a la elaboración del cuestionario, es necesario:",o:["Agradecer la colaboración", "Revisar a conciencia la forma en la que hemos planteado el problema a estudiar", "Garantizar anonimato", "Poner ejemplos, si es necesario"],c:1,e:"Previamente a la elaboración del cuestionario se debe, entre otras cosas, <b>revisar a conciencia la forma en la que se ha planteado el problema a estudiar</b>, los objetivos e hipótesis. Agradecer la colaboración y garantizar el anonimato son parte del guion del cuestionario."},
+{id:61,t:"T15",s:"docx",q:"Una entrevista en profundidad puede orientarse hacia…",o:["El problema a estudiar", "La persona que participa", "Todas las anteriores son correctas", "Ninguna de las anteriores es correcta"],c:2,e:"La entrevista se puede <b>orientar hacia el problema</b> (bases semiestructuradas, información sobre conceptos concretos) o <b>hacia la persona</b> (estructura más libre, el participante expresa sus opiniones). Ambas son válidas. Por tanto, todas las anteriores son correctas."},
+{id:62,t:"T15",s:"docx",q:"Alguno de los motivos por los que no se contesta un cuestionario se da por…",o:["Que el participante contesta no sé", "No contesta por un motivo desconocido", "Las dos anteriores son correctas", "Ninguna de las anteriores es correcta"],c:2,e:"Los motivos por los que no se contesta son: (1) el participante contesta con un 'No sé', o (2) el participante no contesta por algún motivo (normalmente desconocido). <b>Ambas son correctas</b>. Ante esto, se debe crear un apartado 'No sabe/No responde' para codificarlo."},
+{id:63,t:"T15",s:"docx",q:"Las preguntas del cuestionario deben ser…",o:["Generales", "Estimadas", "Específicas", "Implícitas"],c:2,e:"Las preguntas deben ser <b>específicas</b>. Se deben evitar preguntas de carácter general y las estimaciones. Deben ser tan concretas que los participantes no tengan que hacer ningún tipo de estimación o cálculos difíciles."},
+{id:64,t:"T15",s:"docx",q:"A la hora de elegir la muestra, se recomienda…",o:["Elegir varias similares", "Elegir solo una homogénea", "Elegir solo una heterogénea", "Elegir varias diferentes"],c:0,e:"Se recomienda <b>elegir varias muestras similares</b> para poder sustituirlas en caso de fallo durante el trabajo de campo (errores, negativas, etc.)."},
+{id:65,t:"T15",s:"docx",q:"Una de las ventajas de la encuesta MCAPI es…",o:["Ahorra tiempo", "Su coste es barato", "Que permite la movilidad de los entrevistadores", "Ninguna es correcta"],c:2,e:"La <b>encuesta MCAPI (Mobile Computer Assisted Personal Interviewing)</b> permite la <b>movilidad del entrevistador</b>, ya que usa tablets o móviles en lugar de ordenadores fijos. Así se elimina la limitación geográfica de la CAPI."},
+{id:66,t:"T15",s:"docx",q:"La dificultad de acceso es una incidencia que se refiere a…",o:["Aquellos hogares a los que es imposible acceder", "Aquellos hogares que no cumplen con las condiciones", "Aquellos hogares que se encuentran vacíos", "Aquellos individuos que rechazan participar"],c:0,e:"La <b>dificultad de acceso</b> se relaciona con <b>aquellos hogares a los que los entrevistadores les es imposible acceder</b>, por ejemplo, en urbanizaciones cerradas o viviendas en las que el portero rechaza la entrada."},
+{id:67,t:"T15",s:"docx",q:"El ratio de control de respuestas ofrecidas se realiza mediante:",o:["Un segundo contacto", "Preguntas de control", "Correo", "Todas son correctas"],c:1,e:"El <b>control de las respuestas ofrecidas</b> se puede hacer con la ayuda del propio cuestionario, utilizando las ya estudiadas <b>preguntas de control</b>. Estas preguntas se formulan para verificar las respuestas de los participantes, introduciendo alguna falsa entre las alternativas."},
+{id:68,t:"T15",s:"docx",q:"El informe de evaluación de los encuestadores:",o:["Detallará el inicio del proceso supervisado", "Expondrá los resultados que se han obtenido", "De qué manera se han solucionado los aciertos", "Todas las respuestas son correctas"],c:1,e:"El informe de evaluación de los encuestadores detallará todo el proceso supervisado, <b>expondrá los resultados obtenidos</b> y explicará de qué manera se han solucionado los errores (no los aciertos)."},
+{id:69,t:"T15",s:"docx",q:"Una encuesta PAPI es:",o:["La que usa el móvil", "La que usa una tablet", "La más tradicional, con lápiz y papel", "La que se hace a los familiares"],c:2,e:"La encuesta <b>PAPI (Paper and Pencil Interview)</b> es la más tradicional. Sus siglas indican que se basa en la utilización de <b>papel y bolígrafo</b> y requiere por lo tanto la presencia del encuestador."},
+{id:70,t:"T15",s:"docx",q:"La tabulación de datos es:",o:["El proceso para comprobar la veracidad de los datos recogidos", "El proceso para testar los formularios", "El proceso de selección del método de estudio", "El proceso en el que se organizan y agrupan los datos recolectados en tablas para permitir los cálculos estadísticos"],c:3,e:"La <b>tabulación de datos</b> es el proceso en el que se organizan y agrupan los datos recolectados <b>en tablas para permitir los cálculos estadísticos</b>. Las variables de las preguntas se exponen en columnas y las respuestas codificadas se introducen en vertical."},
+{id:71,t:"T15",s:"docx",q:"La extensión ideal de un cuestionario…",o:["No debe superar las 30 preguntas", "Debe superar las 30 preguntas", "No debe superar las 20 preguntas", "Debe superar las 20 preguntas"],c:0,e:"Un cuestionario <b>no debe superar las 30 preguntas</b>. Si los cuestionarios sin presencia del investigador (postal, online) superan ese número, los encuestados no las contestarían. Debe ser y parecer corto para incitar a su cumplimentación."},
+{id:72,t:"T15",s:"docx",q:"El diagrama de flujo…",o:["Diseña las preguntas ramificadas", "Planea la ruta del cuestionario", "Es una herramienta que permite seguir un orden lógico", "Todas son correctas"],c:3,e:"El <b>diagrama de flujo</b> para el cuestionario es: una herramienta que permite seguir un orden lógico (C), reduce posibles errores por mal diseño de las preguntas, diseña con especial cuidado las preguntas ramificadas (A), y planea la 'ruta' adecuada (B). Todo es correcto."},
+{id:73,t:"T15",s:"docx",q:"El sesgo en la elaboración del cuestionario puede deberse a…",o:["Miedo a perder su prestigio", "Sesgo del aprendizaje", "Orden de preguntas incorrecto", "Todas son correctas"],c:3,e:"El sesgo puede deberse a: <b>miedo del participante por perder su prestigio</b>, <b>sesgo de aprendizaje</b> (el participante aprende a responder), <b>orden de preguntas incorrecto</b>, redacción ambigua, diseño del cuestionario... Todas son correctas."},
+{id:74,t:"T15",s:"docx",q:"La grabación de voz…",o:["Permite analizar la interacción en la entrevista", "Permite analizar el ambiente de la entrevista", "Permite el análisis de la entrevista de forma rápida", "Ninguna es correcta"],c:2,e:"La <b>grabación de voz</b> permite que el entrevistador se centre en el tema principal y en la dinámica de la entrevista. Las grabaciones se mandan al ordenador para su almacenaje y posterior análisis, permitiendo un <b>análisis más rápido</b> que otros métodos."},
+{id:75,t:"T15",s:"docx",q:"En la metodología multimodo se busca…",o:["Aumentar el presupuesto", "Combinar metodologías al azar", "Compensar las limitaciones con las ventajas", "Todas son correctas"],c:2,e:"En la metodología multimodo se busca la <b>combinación perfecta que aproveche los aspectos positivos de cada método y compense sus desventajas</b>. Por ejemplo, compensar una baja tasa de respuesta en CAWI mediante el apoyo con el método postal."},
+{id:76,t:"T15",s:"docx",q:"Algunos de los puntos de control del cuestionario son…",o:["Revisar que los entregados coinciden con los declarados", "Comprobar que las respuestas son correctas", "Analizar las preguntas abiertas", "Todas son correctas"],c:3,e:"Los puntos de control del cuestionario en papel son: revisar que los cuestionarios entregados coinciden con los declarados, comprobar que las respuestas sean correctas, y analizar las preguntas abiertas. <b>Todas son correctas.</b>"},
+{id:77,t:"T15",s:"docx",q:"En los estudios cualitativos…",o:["Es necesario que el supervisor compruebe que los participantes cumplen con los requisitos exigidos", "No es necesario contar con datos de contacto", "En ningún caso se deberá repetir la entrevista", "Ninguna es correcta"],c:0,e:"En los estudios cualitativos es necesario que <b>un supervisor compruebe que los participantes de la reunión cumplen con los requisitos exigidos</b>. También se debe contar con datos de contacto y, si se detectan errores irresolubles, considerar una entrevista de sustitución."},
+{id:78,t:"T15",s:"docx",q:"La técnica de asociación se lleva a cabo mediante…",o:["La complementación de una situación incompleta", "La construcción de respuestas a raíz de una estructura", "La presentación de palabras a las que tendrán que ligar la primera palabra que se les ocurra", "Ninguna de las anteriores es correcta"],c:2,e:"La <b>técnica de asociación</b> consiste en presentar al participante una lista de palabras, una cada vez, y se le pide que <b>responda lo primero que se le ocurra</b>. Las palabras de interés se intercalan en la lista y se registra la respuesta y el tiempo."},
+{id:79,t:"T15",s:"docx",q:"Una de las ventajas del cuestionario es que…",o:["La información que obtiene es profunda", "Permite comparar resultados", "Se puede medir la calidad de las respuestas", "El entorno del participante no puede afectar en las respuestas"],c:1,e:"Una de las ventajas del cuestionario es que <b>permite comparar resultados</b>. Otras ventajas son: no requiere entrevistador cualificado, ofrece uniformidad, requiere menos tiempo, favorece el anonimato, y se puede enviar por diferentes medios."},
+{id:80,t:"T15",s:"docx",q:"La presentación en el cuestionario…",o:["Se sitúa al final del cuestionario, como despedida", "Sirve para evitar la desconfianza", "No es necesaria, ya que tenemos a la figura del encuestador", "Ninguna es correcta"],c:1,e:"La <b>presentación</b> del cuestionario sirve para evitar la desconfianza o el rechazo del encuestado. Debe incluir: presentación del encuestador, justificación, motivos de la encuesta, organismo que organiza, garantía de anonimato y agradecimiento."},
+{id:81,t:"T15",s:"docx",q:"Para evitar palabras ambiguas debemos comprobar si…",o:["Significa lo que queremos", "El contexto aclara su significado", "Existe otra palabra más sencilla", "Todas son correctas"],c:3,e:"Para evitar palabras ambiguas el investigador debe comprobar: si la palabra <b>significa lo que quiere</b>, si tiene otro significado, si el <b>contexto aclara su significado</b>, si hay una palabra con pronunciación parecida que induzca a error, y si <b>existe una palabra más sencilla</b>. Todo es correcto."},
+{id:82,t:"T15",s:"docx",q:"Las preguntas deben formularse…",o:["Al azar", "De más específica a más general", "Ordenadas", "Todas son correctas"],c:2,e:"Las preguntas deben formularse de forma <b>ordenada</b>: de lo general a lo específico, de más fáciles a más difíciles, y agrupadas por temáticas o bloques para garantizar la fluidez del cuestionario."},
+{id:83,t:"T15",s:"docx",q:"Se recomienda que en el diseño postal del cuestionario…",o:["La letra sea pequeña", "La letra sea grande", "Se usen imágenes", "Sea sin márgenes"],c:0,e:"Se recomienda que el <b>tamaño de la letra sea pequeño</b> para que así pueda abarcar más preguntas y el cuestionario parezca más corto. También se recomienda formato folleto con portada atractiva y adecuación de márgenes."},
+{id:84,t:"T15",s:"docx",q:"La encuesta online o postal se puede controlar mediante…",o:["Segundas visitas", "Llamadas para supervisar", "Control por correo", "Todas son correctas"],c:3,e:"El control de la encuesta postal y online se puede hacer mediante: <b>segundas visitas</b>, <b>llamadas</b> o <b>control por correo</b> para confirmar que los participantes que han rellenado la encuesta son los que el estudio requería. Todas son correctas."},
+{id:85,t:"T8",s:"kah",q:"¿Qué técnica será más adecuada para generar ideas creativas sobre nuevos productos saludables?",o:["Observación estructurada", "Brainstorming", "Mystery shopping", "Entrevista estructurada"],c:1,e:"El <b>brainstorming</b> o tormenta de ideas es la técnica más adecuada para generar ideas creativas. Es una técnica informal que busca el mayor número de aportaciones a partir de la conversación de un grupo heterogéneo, sin críticas negativas."},
+{id:86,t:"T8",s:"kah",q:"¿Cuál es el número recomendado de participantes en una reunión de grupo?",o:["Entre 2 y 5", "Entre 5 y 7", "Entre 8 y 12", "Más de 20"],c:2,e:"Una reunión de grupo suele estar formada por <b>entre 8 y 12 integrantes</b>. Los grupos inferiores a 8 tienen menos posibilidades de producir las dinámicas necesarias; los de más de 12 dificultan una conversación fluida."},
+{id:87,t:"T8",s:"kah",q:"¿Qué características debe tener el grupo en una técnica grupal?",o:["Debe ser totalmente aleatorio", "Debe ser homogéneo", "Debe incluir expertos únicamente", "Debe estar formado solo por clientes habituales"],c:1,e:"El grupo debe ser <b>homogéneo</b> en sus características sociodemográficas y socioeconómicas para evitar conflictos. No es necesario que sean expertos ni clientes habituales."},
+{id:88,t:"T8",s:"kah",q:"¿Cuál es una ventaja principal de las técnicas de grupo?",o:["Permiten extrapolar resultados a toda la población", "Eliminan totalmente el sesgo del investigador", "Generan gran cantidad de información espontánea", "No requieren conducir"],c:2,e:"La <b>espontaneidad</b> es una de las principales ventajas: las respuestas son más espontáneas y el efecto 'bola de nieve' amplifica la información generada. Sin embargo, los resultados NO son extrapolables a la población (eso sería un inconveniente de otros métodos)."},
+{id:89,t:"T8",s:"kah",q:"¿Qué técnica consiste en una compra simulada para evaluar el servicio?",o:["Método Delphi", "Técnica proyectiva", "Entrevista libre", "Mystery Shopping"],c:3,e:"El <b>Mystery Shopping</b> es una compra simulada donde el observador se hace pasar por un cliente para evaluar el servicio. Es una variable del método por observación."},
+{id:90,t:"T8",s:"kah",q:"Según las recomendaciones ESOMAR, el Mystery Shopping:",o:["Debe utilizarse para sancionar empleados", "Puede exigir actividades peligrosas al participante", "No debe perjudicar la productividad de la competencia", "Debe realizarse sin consentimiento de la empresa investigada"],c:2,e:"Según ESOMAR, si se realizan estudios para medir el servicio de la competencia, se deberá hacer de forma rápida y sencilla, <b>sin perjudicar la productividad de esta</b>. No debe usarse para sancionar trabajadores ni poner en peligro al participante."},
+{id:91,t:"T8",s:"kah",q:"¿Qué tipo de entrevista permite mayor libertad al participante?",o:["Estructurada", "Libre o no dirigida", "Semiestructurada", "Cerrada"],c:1,e:"La <b>entrevista libre o no dirigida</b> no está estructurada y permite que el participante se exprese de forma libre con el máximo detalle. El entrevistador simplemente evita que el participante se desvíe del tema."},
+{id:92,t:"T8",s:"kah",q:"En las técnicas proyectivas, el participante:",o:["Responde únicamente a preguntas cerradas", "Debe memorizar información", "Proyecta indirectamente sus sentimientos y motivaciones", "Solo analiza datos cuantitativos"],c:2,e:"En las técnicas proyectivas el participante <b>proyecta indirectamente sus motivaciones, creencias y sentimientos</b>. Se le pide que interprete el comportamiento de otros, de forma que se puedan inferir sus propias actitudes."},
+{id:93,t:"T8",s:"kah",q:"¿Cuál de las siguientes es una técnica proyectiva?",o:["Escala Likert", "Pregunta dicotómica", "Técnica de asociación de palabras", "Encuesta online"],c:2,e:"La <b>técnica de asociación de palabras</b> es proyectiva: se presenta una lista de palabras y el participante responde lo primero que se le ocurre. La Likert y las dicotómicas son tipos de preguntas de cuestionario, no técnicas proyectivas."},
+{id:94,t:"T9",s:"kah",q:"¿Cuál es la principal función del cuestionario?",o:["Realizar entrevistas en profundidad", "Estandarizar los datos obtenidos", "Sustituir al investigador", "Evitar el análisis estadístico"],c:1,e:"La principal función del cuestionario es <b>estandarizar los datos</b> obtenidos para facilitar su posterior análisis estadístico. No sustituye al investigador, sino que facilita su tarea."},
+{id:95,t:"T9",s:"kah",q:"¿Qué diferencia principal existe entre entrevistas y cuestionario?",o:["El cuestionario siempre es oral", "La entrevista nunca requiere investigador", "La entrevista tiene mayor participación del investigador", "El cuestionario solo usa preguntas abiertas"],c:2,e:"La diferencia principal es el <b>grado de estructuración y la participación del investigador</b>: la entrevista tiene mayor participación del investigador y menor estructuración, mientras que el cuestionario es más estructurado con menos intervención del investigador."},
+{id:96,t:"T9",s:"kah",q:"¿Qué tipo de cuestionario combina preguntas abiertas y cerradas?",o:["No estructurado", "Estructurado", "Semiestructurado", "Experimental"],c:2,e:"El <b>cuestionario semiestructurado</b> combina preguntas abiertas y cerradas. Las cerradas se usan para información conocida y las abiertas para profundizar en aspectos menos explorados."},
+{id:97,t:"T9",s:"kah",q:"¿Qué tipo de preguntas deben colocarse al inicio del cuestionario?",o:["Complejas", "Matemáticas", "De aproximación", "Técnicas"],c:2,e:"Las <b>preguntas de aproximación</b> son simples y no requieren compromiso. Van al principio para generar motivación. Las preguntas complejas o delicadas van al final."},
+{id:98,t:"T9",s:"kah",q:"¿Cuál de los siguientes formatos de pregunta permite ordenar opciones de mejor a peor?",o:["Pregunta abierta", "Escala Likert", "Pregunta de lista", "Pregunta dicotómica"],c:1,e:"La <b>Escala Likert</b> pide al entrevistado que ordene o clasifique opciones, por ejemplo de mejor a peor o de mayor a menor acuerdo. La dicotómica solo tiene dos opciones (sí/no)."},
+{id:99,t:"T9",s:"kah",q:"¿Qué atributo debe cumplir un cuestionario para favorecer su éxito?",o:["Tener más de 50 preguntas", "Utilizar un lenguaje ambiguo", "Ser claro y adaptado al participante", "Incluir cálculos matemáticos complejos"],c:2,e:"El cuestionario debe ser <b>claro y adaptado al nivel del participante</b>. No debe superar las 30 preguntas, el lenguaje debe ser sencillo, las preguntas concretas y se deben evitar cálculos y palabras ambiguas."},
+{id:100,t:"T10",s:"kah",q:"¿Cuál es una característica fundamental de una buena pregunta en un cuestionario?",o:["Debe ser extensa", "Debe ser ambigua", "Debe ser clara y concreta", "Debe incluir opiniones del investigador"],c:2,e:"Las preguntas deben ser <b>claras y concretas</b>: sin palabras ambiguas, lenguaje sencillo adaptado al participante, evitando suposiciones y generalizaciones."},
+{id:101,t:"T10",s:"kah",q:"¿Qué tipo de pregunta permite al encuestado responder libremente con sus propias palabras?",o:["Cerrada", "Dicotómica", "Abierta", "Multicotómica"],c:2,e:"La <b>pregunta abierta</b> da total libertad al encuestado para responder con sus propias palabras. Es útil en fases exploratorias para obtener información cualitativa."},
+{id:102,t:"T10",s:"kah",q:"Una pregunta sesgada es aquella que:",o:["Tiene muchas respuestas posibles", "Sugiere la respuesta deseada", "Es demasiado corta", "Está escrita en mayúsculas"],c:1,e:"Una pregunta sesgada es aquella que <b>sugiere la respuesta deseada</b>, llevando al encuestado a contestar de una forma determinada. También puede surgir sesgo al mencionar quién patrocina la investigación."},
+{id:103,t:"T10",s:"kah",q:"¿Qué debe evitarse al redactar preguntas?",o:["Lenguaje claro", "Alternativas explícitas", "Palabras ambiguas", "Preguntas cortas"],c:2,e:"Se deben evitar las <b>palabras ambiguas</b> como 'usualmente', 'normalmente' o 'frecuentemente', ya que pueden interpretarse de diferentes maneras."},
+{id:104,t:"T10",s:"kah",q:"Las preguntas filtro tienen como finalidad:",o:["Medir actitudes", "Verificar respuestas falsas", "Seleccionar participantes con determinadas características", "Profundizar en un tema"],c:2,e:"Las <b>preguntas filtro</b> seleccionan a participantes con determinadas características, dirigiéndolos a diferentes partes del cuestionario según su respuesta."},
+{id:105,t:"T10",s:"kah",q:"El pretest del cuestionario sirve para:",o:["Aumentar el tamaño de la muestra", "Detectar errores antes de aplicar la encuesta definitiva", "Reducir preguntas abiertas", "Eliminar entrevistadores"],c:1,e:"El <b>pretest</b> detecta errores antes de aplicar la encuesta definitiva, familiariza a los encuestadores y valida la estructura del cuestionario."},
+{id:106,t:"T10",s:"kah",q:"Aproximadamente, el pretest suele realizarse sobre:",o:["El 1% de la muestra", "El 5% de la muestra", "El 25% de la muestra", "El 50% de la muestra"],c:1,e:"El pretest se realiza aproximadamente sobre el <b>5% de la muestra total</b>."},
+{id:107,t:"T10",s:"kah",q:"¿Cuál de los siguientes puede provocar sesgo en las respuestas?",o:["Mantener neutralidad", "Preguntas concretas", "Mostrar la opinión del entrevistador", "Lenguaje sencillo"],c:2,e:"<b>Mostrar la opinión del entrevistador</b> provoca sesgo: el entrevistado tiende a responder según lo que cree que el entrevistador espera de él."},
+{id:108,t:"T10",s:"kah",q:"¿Qué método de registro permite analizar el lenguaje corporal?",o:["Toma de notas", "Grabación de voz", "Grabación de vídeo", "Cuestionario postal"],c:2,e:"La <b>grabación de vídeo</b> permite analizar el lenguaje corporal y la interacción, siendo más completa pero más costosa que la grabación de audio."},
+{id:109,t:"T10",s:"kah",q:"¿Qué debe solicitarse antes de grabar una entrevista?",o:["Una encuesta previa", "Una hoja de cálculo", "Consentimiento expreso", "Una copia del DNI"],c:2,e:"Se debe solicitar el <b>consentimiento expreso</b> del participante antes de grabar, según la Ley de Protección de Datos."},
+{id:110,t:"T11",s:"kah",q:"¿Qué significa la metodología CAPI?",o:["Encuesta postal informatizada", "Entrevista telefónica automática", "Encuesta personal asistida por ordenador", "Encuesta online móvil"],c:2,e:"<b>CAPI</b> = Computer Assisted Personal Interviewing = <b>Encuesta personal asistida por ordenador</b>."},
+{id:111,t:"T11",s:"kah",q:"¿Cuál es una ventaja de la encuesta CAWI?",o:["Necesita presencia física", "Permite respuestas en tiempo real", "Tiene un coste muy elevado", "No admite contenido multimedia"],c:1,e:"La encuesta <b>CAWI</b> permite seguir los <b>resultados en tiempo real</b>. Además es muy barata, no tiene limitación geográfica y permite todo tipo de apoyo visual."},
+{id:112,t:"T11",s:"kah",q:"La metodología CATI se basa en:",o:["Encuestas por correo postal", "Entrevistas presenciales", "Encuestas telefónicas asistidas por ordenador", "Encuestas mediante tablets"],c:2,e:"<b>CATI</b> = Computer Assisted Telephone Interviewing = <b>Encuestas telefónicas asistidas por ordenador</b>."},
+{id:113,t:"T11",s:"kah",q:"¿Qué estrategia ayuda a aumentar la tasa de respuesta en encuestas online?",o:["Correos considerados spam", "Incentivos y recordatorios", "Preguntas ambiguas", "Cuestionarios muy largos"],c:1,e:"Los <b>incentivos y recordatorios</b> son estrategias clave para aumentar la tasa de respuesta en encuestas online."},
+{id:114,t:"T11",s:"kah",q:"La metodología multimodo consiste en:",o:["Utilizar solo encuestas online", "Combinar distintos métodos de encuesta", "Aplicar únicamente entrevistas personales", "Usar exclusivamente cuestionarios cerrados"],c:1,e:"La <b>metodología multimodo</b> combina distintos métodos de encuesta para aprovechar sus ventajas y compensar sus limitaciones."},
+{id:115,t:"T11",s:"kah",q:"En una encuesta postal es especialmente importante:",o:["El uso de vídeos", "La presencia del entrevistador", "Las instrucciones de cumplimentación", "La grabación de audio"],c:2,e:"En la encuesta postal las <b>instrucciones de cumplimentación</b> son fundamentales, ya que sustituyen al encuestador."}
+];
+
+const ST = {
+  mode:'simulacro', tema:'todos', src:'todas',
+  pool:[], cur:0, answered:false, session:[],
+  fails:[], hist:{done:0,ok:0}, fi:0,
+};
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function setMode(m,el){
+  ST.mode=m;
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  const showTema=(m==='porTema'||m==='todas');
+  document.getElementById('filters-tema').style.display=showTema?'flex':'none';
+  const labels={
+    simulacro:'Empezar simulacro (40 preguntas) ↗',
+    flashcards:'Empezar flashcards ↗',
+    porTema:'Estudiar tema seleccionado ↗',
+    fallos:ST.fails.length>0?`Repasar ${ST.fails.length} fallos ↗`:'Sin fallos aún',
+    todas:'Responder todas las preguntas ↗'
+  };
+  document.getElementById('start-btn').textContent=labels[m];
+}
+
+function selTema(el,t){document.querySelectorAll('[onclick^="selTema"]').forEach(x=>x.classList.remove('active'));el.classList.add('active');ST.tema=t;}
+function selSrc(el,s){document.querySelectorAll('[onclick^="selSrc"]').forEach(x=>x.classList.remove('active'));el.classList.add('active');ST.src=s;}
+
+function buildPool(){
+  let pool=[...Q];
+  if(ST.tema!=='todos') pool=pool.filter(q=>q.t===ST.tema);
+  if(ST.src!=='todas') pool=pool.filter(q=>q.s===ST.src);
+  return shuffle(pool);
+}
+
+function buildPoolOrdered(){
+  let pool=[...Q];
+  if(ST.tema!=='todos') pool=pool.filter(q=>q.t===ST.tema);
+  if(ST.src!=='todas') pool=pool.filter(q=>q.s===ST.src);
+  return pool;
+}
+
+function startSession(){
+  if(ST.mode==='fallos'&&ST.fails.length===0)return;
+  let pool;
+  if(ST.mode==='simulacro') pool=buildPool().slice(0,40);
+  else if(ST.mode==='flashcards') pool=buildPool();
+  else if(ST.mode==='porTema') pool=buildPool();
+  else if(ST.mode==='todas') pool=buildPoolOrdered();
+  else pool=shuffle(Q.filter(q=>ST.fails.includes(q.id)));
+  ST.pool=pool; ST.cur=0; ST.session=[];
+  if(ST.mode==='flashcards'){ST.fi=0;showScreen('screen-flash');renderFlash();}
+  else{showScreen('screen-quiz');renderQ();}
+}
+
+const srcLabel={'docx':'📝 Tipo test','kah':'🎮 Kahoot'};
+const srcClass={'docx':'src-docx','kah':'src-kah'};
+
+function renderQ(){
+  const q=ST.pool[ST.cur], n=ST.pool.length;
+  document.getElementById('q-progress').textContent=`${ST.cur+1}/${n}`;
+  document.getElementById('progress-fill').style.width=Math.round(ST.cur/n*100)+'%';
+  document.getElementById('q-meta').innerHTML=`<span class="q-tag tema">${q.t}</span><span class="q-tag ${srcClass[q.s]||'src-docx'}">${srcLabel[q.s]||'📝 Tipo test'}</span>`;
+  document.getElementById('q-text').textContent=q.q;
+  const L=['A','B','C','D'];
+  document.getElementById('q-options').innerHTML=q.o.map((o,i)=>`<button class="option" onclick="selectAnswer(${i})"><span class="opt-letter">${L[i]}</span>${o}</button>`).join('');
+  document.getElementById('q-explanation').className='explanation';
+  document.getElementById('q-explanation').innerHTML='';
+  document.getElementById('next-btn').className='next-btn';
+  ST.answered=false;
+}
+
+function selectAnswer(idx){
+  if(ST.answered)return; ST.answered=true;
+  const q=ST.pool[ST.cur];
+  const opts=document.querySelectorAll('.option');
+  opts.forEach(o=>o.classList.add('disabled'));
+  const ok=idx===q.c;
+  opts[idx].classList.add(ok?'correct':'wrong');
+  if(!ok)opts[q.c].classList.add('show-correct');
+  const expEl=document.getElementById('q-explanation');
+  expEl.innerHTML=`<strong>${ok?'✓ Correcto':'✗ Incorrecto'}</strong> — ${q.e}`;
+  expEl.className='explanation show'+(ok?'':' wrong-exp');
+  ST.session.push({id:q.id,ok});
+  ST.hist.done++; if(ok){ST.hist.ok++;ST.fails=ST.fails.filter(f=>f!==q.id);}
+  else if(!ST.fails.includes(q.id))ST.fails.push(q.id);
+  updateStats();
+  const nb=document.getElementById('next-btn');
+  nb.className='next-btn show';
+  nb.textContent=ST.cur+1<ST.pool.length?'Siguiente →':'Ver resultados →';
+}
+
+function nextQuestion(){ST.cur++;ST.cur>=ST.pool.length?showResults():renderQ();}
+
+function renderFlash(){
+  const q=ST.pool[ST.fi],n=ST.pool.length;
+  document.getElementById('f-progress').textContent=`${ST.fi+1}/${n}`;
+  document.getElementById('f-fill').style.width=Math.round(ST.fi/n*100)+'%';
+  document.getElementById('card-q').textContent=q.q;
+  document.getElementById('card-a').textContent=q.o[q.c];
+  document.getElementById('flashcard').classList.remove('flipped');
+}
+
+function flipCard(){document.getElementById('flashcard').classList.toggle('flipped');}
+
+function cardAnswer(knew){
+  if(knew){ST.fails=ST.fails.filter(f=>f!==ST.pool[ST.fi].id);}
+  else if(!ST.fails.includes(ST.pool[ST.fi].id))ST.fails.push(ST.pool[ST.fi].id);
+  ST.fi++;
+  if(ST.fi>=ST.pool.length){goHome();}else{renderFlash();}
+}
+
+function showResults(){
+  const ok=ST.session.filter(x=>x.ok).length;
+  const tot=ST.session.length;
+  const pct=Math.round(ok/tot*100);
+  const pass=pct>=60;
+  document.getElementById('score-pct').textContent=pct+'%';
+  document.getElementById('score-circle').className='score-circle '+(pass?'pass':'fail');
+  document.getElementById('results-title').textContent=pass?'¡Buen trabajo! 🎉':'Sigue practicando 💪';
+  document.getElementById('results-sub').textContent=`${ok} correctas de ${tot} preguntas`;
+  document.getElementById('res-ok').textContent=ok;
+  document.getElementById('res-ko').textContent=tot-ok;
+  document.getElementById('res-tot').textContent=tot;
+  const wrongs=ST.session.filter(x=>!x.ok).map(x=>Q.find(q=>q.id===x.id)).filter(Boolean);
+  const rl=document.getElementById('review-list');
+  if(wrongs.length>0){
+    rl.innerHTML='<div class="review-title">Preguntas falladas</div>'+wrongs.map(q=>`<div class="review-item">${q.q}<div class="review-correct">✓ ${q.o[q.c]}</div></div>`).join('');
+  }else{
+    rl.innerHTML='<div class="review-title" style="color:#1D9E75">¡Todas correctas! 🎯</div>';
+  }
+  showScreen('screen-results');
+}
+
+
+const CHEAT=[
+  {t:"T8",h:"Tipos de trabajo de campo",rows:[
+    ["Técnicas de grupo","Técnicas cualitativas con 8-12 integrantes homogéneos. Generan información espontánea y efecto 'bola de nieve'."],
+    ["Brainstorming","Tormenta de ideas. Grupos heterogéneos de 4-8 personas. Sin críticas. Para generar ideas o solucionar problemas."],
+    ["Método Delphi","Reunión de 10-40 expertos. Cuestionarios sucesivos hasta consenso. Muy estructurado."],
+    ["Grupo nominal","15-25 participantes heterogéneos. Ideas en papel → exposición → votación. Para evitar inhibición."],
+    ["Observación","Técnica para obtener datos cualitativos/cuantitativos sin intervención directa. Puede ser estructurada o no."],
+    ["Mystery Shopping","Compra simulada para evaluar servicios. Según ESOMAR: no para sancionar, sin perjudicar productividad."],
+    ["Entrevista en profundidad","Comunicación entre entrevistador y participante. Tipos: libre, semiestructurada, estructurada."],
+    ["Técnicas proyectivas","Indirectas: el participante proyecta sus motivaciones. Tipos: asociación, complementación, construcción, expresivas."],
+    ["Ventajas técnicas grupo","Más información, espontaneidad, rapidez, flexibilidad. Inconveniente: no extrapolables a la población."],
+  ]},
+  {t:"T9",h:"El cuestionario en el trabajo de campo",rows:[
+    ["Cuestionario","Instrumento por excelencia. Serie de preguntas ordenadas, comprensibles y claras. Estandariza los datos."],
+    ["Función principal","Estandarizar los datos para permitir el análisis estadístico."],
+    ["Cuestionario estructurado","Todas las preguntas cerradas. Para investigaciones descriptivas y concluyentes."],
+    ["Cuestionario semiestructurado","Combina preguntas abiertas y cerradas. Para cantidad variada de respuestas."],
+    ["Cuestionario no estructurado","Todas las preguntas abiertas. Para investigaciones exploratorias."],
+    ["Con investigador","Apoya y controla la cumplimentación. Mayor control pero mayor coste."],
+    ["Sin investigador","Encuesta postal u online. Ahorra costes pero requiere diseño detallado. Máx. 30 preguntas."],
+    ["Ventajas cuestionario","No requiere entrevistador cualificado, uniformidad, rapidez, anonimato, comparabilidad."],
+    ["Estructura","Introducción (presentación) + Cuerpo (preguntas) + Identificadores del participante."],
+  ]},
+  {t:"T10",h:"Diseño del cuestionario. Consideraciones previas",rows:[
+    ["Consideraciones previas","Revisar el problema, valorar el cuestionario, formular objetivos, pedir consentimiento, buscar información secundaria, evaluar costes."],
+    ["Guion","Presentación + Temas a tratar + Duración máxima + Cabecera del encuestado + Instrucciones al entrevistador."],
+    ["Orden de preguntas","1-Presentación, 2-Preguntas introducción, 3-Preguntas clave, 4-Preguntas difíciles, 5-Datos personales, 6-Agradecimientos."],
+    ["Preguntas iniciales","Sencillas y motivadoras. Para obtener la confianza del participante."],
+    ["Preguntas difíciles","Van al final. El participante ya está comprometido y no se negará."],
+    ["Diagrama de flujo","Herramienta para seguir orden lógico. Ayuda con preguntas ramificadas y reduce errores de diseño."],
+    ["Metodología de diseño","1-Listar info necesaria, 2-Elegir tipo, 3-Definir preguntas, 4-Estructurar, 5-Prueba piloto."],
+    ["Cuestionarios no realizados","Deberían oscilar entre el 5-10%. Mayor porcentaje provoca sesgo."],
+  ]},
+  {t:"T11",h:"Diseño del cuestionario. Tipos de preguntas",rows:[
+    ["Pregunta abierta","Libertad total al encuestado. Responde con sus propias palabras."],
+    ["Pregunta cerrada","El participante elige entre alternativas predefinidas."],
+    ["Pregunta semicerrada","Cerrada con opción de respuesta abierta."],
+    ["Dicotómica","Solo dos opciones (sí/no, acuerdo/desacuerdo)."],
+    ["Multicotómica","Varias opciones, solo una respuesta posible."],
+    ["Respuesta múltiple","Varias opciones, más de una respuesta posible."],
+    ["Pregunta filtro","Selecciona participantes con ciertas características."],
+    ["Pregunta control","Verifica respuestas, incluye opciones falsas."],
+    ["Escala Likert","Ordena opciones de mejor a peor o por grado de acuerdo."],
+    ["Pretest / Prueba piloto","5% de la muestra. Detecta errores, familiariza encuestadores, valida el cuestionario."],
+    ["Sesgo","Causas: prestigio, tiempo, imagen, redacción incorrecta, orden de preguntas."],
+  ]},
+  {t:"T12",h:"Proceso de la entrevista",rows:[
+    ["Preparación","Objetivos + Personas + Preguntas + Lugar."],
+    ["Fases de la entrevista","Presentación → Fase inicial (romper hielo) → Fase intermedia (preguntas clave) → Fase final (resumen) → Después (comentarios)."],
+    ["Grabación de voz","Método más común. Permite análisis posterior rápido. Requiere consentimiento expreso."],
+    ["Grabación de vídeo","Permite analizar lenguaje corporal. Más costosa y completa."],
+    ["Toma de notas","Puede distraer. Útil para contexto y ambiente que las grabaciones no captan."],
+    ["Transcripción","Transformar grabación a texto. Un transcriptor tarda ~5h por hora de entrevista."],
+    ["Actitud entrevistador","Neutral, entonación equilibrada, contacto visual, dar tiempo, no opinar."],
+    ["Continuidad","Si el encuestado se niega, pasar a la siguiente pregunta. Anotar la incidencia."],
+    ["Selección de entrevistados","Muestreo aleatorio simple (sin/con reemplazamiento), sistemático lineal o circular."],
+  ]},
+  {t:"T13",h:"Trabajo de campo según el tipo de entrevistas",rows:[
+    ["PAPI","Paper and Pencil Interview. Más tradicional, con papel y bolígrafo. Requiere presencia del encuestador."],
+    ["CAPI","Computer Assisted Personal Interviewing. Encuesta personal con ordenador. Limitación geográfica."],
+    ["MCAPI","Mobile CAPI. Usa tablets/móviles. Elimina la limitación geográfica."],
+    ["CATI","Computer Assisted Telephone Interviewing. Encuesta telefónica asistida por ordenador."],
+    ["CAWI","Computer Assisted Web Interviewing. Encuesta online. Muy barata, en tiempo real, sin límite geográfico."],
+    ["Encuesta postal","Más antigua. Sin encuestador. Las instrucciones sustituyen al encuestador. Diseño formato folleto."],
+    ["Metodología multimodo","Combina diferentes métodos aprovechando sus ventajas y compensando limitaciones."],
+    ["Estrategias tasa respuesta CAWI","Incentivos, email de invitación atractivo, recordatorios."],
+    ["CATI: selección muestra","Directorio telefónico, marcación al azar, método combinado."],
+  ]},
+  {t:"T14",h:"Supervisión y control",rows:[
+    ["Verificación cuestionario","Revisar datos, codificar, analizar preguntas, analizar por grupos, estudiar relaciones, interpretar resultados."],
+    ["Codificación","Transformar respuestas en códigos/números para tratamiento estadístico. Tipos: nominal, ordinal, intervalo, razón."],
+    ["Codificación nominal","Etiqueta respuestas. Ej: Sí(1), No(0). Para respuestas excluyentes."],
+    ["Codificación ordinal","Valor relacionado con nivel o grado. Ej: Bajo(1), Medio(2), Alto(3)."],
+    ["Supervisión durante campo","Acompañamiento, visitas posteriores, llamadas, mensajería."],
+    ["Supervisión post-campo","Puntos de control: cuestionarios entregados = declarados, respuestas correctas, preguntas abiertas."],
+    ["Control CAWI/postal","Segundas visitas, llamadas, control por correo. Tecnologías: cookies, ID de dispositivo."],
+    ["Control CATI","Monitorización de llamadas en directo. Máximo 8-10 encuestadores por supervisor."],
+    ["Incidencias comunes","Dificultad acceso al hogar, contactos fallidos, casas vacías, rechazos, negativas."],
+    ["Tratamiento incidencias","Acceso imposible: suprimir y pasar al siguiente. Negativa: habilidades sociales, asegurar anonimato."],
+  ]},
+  {t:"T15",h:"Sistemas de evaluación del trabajo de campo",rows:[
+    ["Evaluación calidad","Basada en coste (por entrevista, del equipo) y tiempo (cuestionarios/tiempo = rendimiento)."],
+    ["Ratios de control","Control a la entrega (15-20%), nueva entrevista (5-10%), control por correo, control de respuestas."],
+    ["Tabulación de datos","Organizar datos en tablas. Variables en columnas, respuestas codificadas en vertical."],
+    ["Frecuencia absoluta","Número de veces que aparece un valor. Suma = tamaño muestral."],
+    ["Frecuencia relativa","Proporción respecto al total. Cada valor / total de la muestra. Suma = 1."],
+    ["Frecuencia absoluta acumulada","Suma de frecuencias absolutas hasta ese valor."],
+    ["Frecuencia relativa acumulada","Frecuencia absoluta acumulada / total de la muestra."],
+    ["Gráficas","Diagrama de barras (distribución), sectores (porcentajes), histograma (variables continuas)."],
+    ["Informe trabajo de campo","Objetivos, metodología, control y supervisión, incidencias y subsanación, recomendaciones."],
+    ["Informe evaluación encuestadores","Estudio, incidencias de cuota, incidencias de ruta, problemas del cuestionario, incidencias generales."],
+  ]},
+];
+
+
+function showCheatsheet(){
+  document.getElementById('cheat-content').innerHTML=CHEAT.map(t=>`
+    <div class="cs-section">
+      <div class="cs-head" onclick="toggleCs(this)">${t.t} — ${t.h} <span>▾</span></div>
+      <div class="cs-body">${t.rows.map(r=>`<div class="cs-row"><span class="cs-key">${r[0]}</span><span class="cs-val">${r[1]}</span></div>`).join('')}</div>
+    </div>`).join('');
+  showScreen('screen-cheat');
+}
+
+function toggleCs(el){const b=el.nextElementSibling;b.classList.toggle('open');el.querySelector('span').textContent=b.classList.contains('open')?'▴':'▾';}
+
+function goHome(){updateStats();showScreen('screen-home');}
+
+function showScreen(id){
+  ['screen-home','screen-quiz','screen-results','screen-flash','screen-cheat'].forEach(s=>{document.getElementById(s).classList.toggle('hidden',s!==id);});
+}
+
+function updateStats(){
+  document.getElementById('stat-done').textContent=ST.hist.done;
+  document.getElementById('stat-correct').textContent=ST.hist.ok;
+  document.getElementById('stat-pct').textContent=ST.hist.done>0?Math.round(ST.hist.ok/ST.hist.done*100)+'%':'—';
+  if(ST.mode==='fallos')document.getElementById('start-btn').textContent=ST.fails.length>0?`Repasar ${ST.fails.length} fallos ↗`:'Sin fallos aún';
+}
+
+</script>
